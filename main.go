@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
+	"text/template"
 
 	_ "embed"
 
@@ -44,11 +47,37 @@ func initInit(cmd *cobra.Command, args []string) error {
 	file.WriteString(main_tmp)
 	file.Close()
 
+	tmpl, err := template.New("go_mod").Parse(go_mod_tmp)
+	if err != nil {
+		return err
+	}
 	file, err = os.Create("go.mod")
 	if err != nil {
 		return err
 	}
-	file.WriteString(go_mod_tmp)
-	file.Close()
+	goVersion, err := getGoVersion()
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return tmpl.Execute(file, struct {
+		Version string
+	}{
+		Version: goVersion,
+	})
 	return nil
+}
+
+func getGoVersion() (string, error) {
+	out, err := exec.Command("go", "version").Output()
+	if err != nil {
+		return "", err
+	}
+
+	fields := strings.Fields(string(out))
+	if len(fields) < 3 {
+		return "", fmt.Errorf("unexpected go version output: %q", out)
+	}
+
+	return strings.TrimPrefix(fields[2], "go"), nil
 }
