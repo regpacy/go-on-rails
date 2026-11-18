@@ -27,7 +27,8 @@ func main() {
 		},
 	}
 	initCmd := &cobra.Command{
-		Use:  "init",
+		Use:  "init <module_path>",
+		Args: cobra.ExactArgs(1),
 		RunE: initInit,
 	}
 
@@ -40,6 +41,7 @@ func main() {
 }
 
 func initInit(cmd *cobra.Command, args []string) error {
+	modulePath := args[0]
 	file, err := os.Create("main.go")
 	if err != nil {
 		return err
@@ -61,9 +63,11 @@ func initInit(cmd *cobra.Command, args []string) error {
 	}
 	defer file.Close()
 	return tmpl.Execute(file, struct {
-		Version string
+		Version    string
+		ModulePath string
 	}{
-		Version: goVersion,
+		Version:    goVersion,
+		ModulePath: modulePath,
 	})
 	return nil
 }
