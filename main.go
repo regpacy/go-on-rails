@@ -114,7 +114,28 @@ func createPath(cmd *cobra.Command, args []string) error {
 	src, err := os.ReadFile("main.go")
 
 	err = addRouter(path, functionName, src)
+	if err != nil {
+		return err
+	}
+	err = addFunc(functionName, src)
 	return err
+}
+
+func addFunc(functionName string, src []byte) error {
+	newFunc := fmt.Sprintf(`
+	func %s(c *gin.Context) {
+    c.JSON(http.StatusOK, gin.H{})
+	}
+	`, functionName)
+
+	updated := append(src, []byte("\n"+newFunc)...)
+
+	formatted, err := format.Source(updated)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile("main.go", formatted, 0o644)
 }
 
 func addRouter(path string, functionName string, src []byte) error {
