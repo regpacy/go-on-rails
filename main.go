@@ -112,19 +112,20 @@ func createPath(cmd *cobra.Command, args []string) error {
 		return errors.New("Project Should be compilable before adding path")
 	}
 	src, err := os.ReadFile("main.go")
+
+	err = addRouter(path, functionName, src)
+	return err
+}
+
+func addRouter(path string, functionName string, src []byte) error {
 	fset := token.NewFileSet()
 
 	file, err := parser.ParseFile(fset, "main.go", src, 0)
 	if err != nil {
 		return err
 	}
-	err = addRouter(file.Decls, path, functionName, src, fset)
-	return err
-}
-
-func addRouter(decls []ast.Decl, path string, functionName string, src []byte, fset *token.FileSet) error {
 	// Find main()
-	for _, decl := range decls {
+	for _, decl := range file.Decls {
 		fn, ok := decl.(*ast.FuncDecl)
 		if !ok || fn.Name.Name != "main" {
 			continue
@@ -174,7 +175,7 @@ func addRouter(decls []ast.Decl, path string, functionName string, src []byte, f
 		if err != nil {
 			return err
 		}
-
+		src = formatted
 		return os.WriteFile("main.go", formatted, 0o644)
 	}
 
