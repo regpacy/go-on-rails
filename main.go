@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//go:embed templates/main.go.tmp
+//go:embed templates/main.go
 var main_tmp string
 
 //go:embed templates/go.mod.tmp
@@ -62,13 +62,20 @@ func initInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	defer file.Close()
-	return tmpl.Execute(file, struct {
+	err = tmpl.Execute(file, struct {
 		Version    string
 		ModulePath string
 	}{
 		Version:    goVersion,
 		ModulePath: modulePath,
 	})
+	if err != nil {
+		return err
+	}
+	output, err := exec.Command("go", "get", "github.com/gin-gonic/gin").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("go get failed: %w\n%s", err, output)
+	}
 	return nil
 }
 
