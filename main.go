@@ -1,7 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"go/ast"
+	"go/format"
+	"go/parser"
+	"go/token"
 	"os"
 	"os/exec"
 	"strings"
@@ -25,17 +30,22 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			println(main_tmp)
 		},
+		SilenceUsage: true,
 	}
 	initCmd := &cobra.Command{
 		Use:  "init <module_path>",
 		Args: cobra.ExactArgs(1),
 		RunE: initInit,
 	}
+	pathCmd := &cobra.Command{
+		Use:  "path <path> <function name>",
+		Args: cobra.ExactArgs(2),
+		RunE: createPath,
+	}
 
-	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(initCmd, pathCmd)
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
@@ -91,4 +101,82 @@ func getGoVersion() (string, error) {
 	}
 
 	return strings.TrimPrefix(fields[2], "go"), nil
+}
+
+func createPath(cmd *cobra.Command, args []string) error {
+	path := args[0]
+	functionName := args[1]
+
+	err := exec.Command("go", "build", "-o", "/dev/null", "./...").Run()
+	if err != nil {
+		return errors.New("Project Should be compilable before adding path")
+	}
+	src, err := os.ReadFile("main.go")
+	fset := token.NewFileSet()
+
+	file, err := parser.ParseFile(fset, "main.go", src, 0)
+	if err != nil {
+		return err
+	}
+	err = addRouter(file.Decls, path, functionName, src, fset)
+	return err
+}
+
+func addRouter(decls []ast.Decl, path string, functionName string, src []byte, fset *token.FileSet) error {
+	// Find main()
+	for _, decl := range decls {
+		fn, ok := decl.(*ast.FuncDecl)
+		if !ok || fn.Name.Name != "main" {
+			continue
+		}
+
+		// Find the last route registration
+		insertPos := -1
+
+		for _, stmt := range fn.Body.List {
+			exprStmt, ok := stmt.(*ast.ExprStmt)
+			if !ok {
+				continue
+			}
+
+			call, ok := exprStmt.X.(*ast.CallExpr)
+			if !ok {
+				continue
+			}
+
+			sel, ok := call.Fun.(*ast.SelectorExpr)
+			if !ok {
+				continue
+			}
+
+			receiver, ok := sel.X.(*ast.Ident)
+			if !ok || receiver.Name != "r" {
+				continue
+			}
+
+			switch sel.Sel.Name {
+			case "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS":
+				insertPos = fset.Position(stmt.End()).Offset
+			}
+		}
+
+		if insertPos == -1 {
+			return fmt.Errorf("no route handlers found")
+		}
+
+		// Insert text after the last handler
+		updated := string(src[:insertPos]) +
+			"\n\n\t" +
+			"r.GET(\"/" + path + "\", " + functionName + ")" +
+			string(src[insertPos:])
+
+		formatted, err := format.Source([]byte(updated))
+		if err != nil {
+			return err
+		}
+
+		return os.WriteFile("main.go", formatted, 0o644)
+	}
+
+	return fmt.Errorf("main function not found")
 }
