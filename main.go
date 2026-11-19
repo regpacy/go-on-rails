@@ -23,7 +23,7 @@ var main_tmp string
 //go:embed templates/go.mod.tmp
 var go_mod_tmp string
 
-//go:embed templates/server.go
+//go:embed templates/server.go.tmp
 var server_tmp string
 
 func main() {
@@ -121,9 +121,12 @@ func createPath(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.New("Project Should be compilable before adding path")
 	}
-	src, err := os.ReadFile("main.go")
+	src, err := os.ReadFile("server.go")
+	if err != nil {
+		return err
+	}
 
-	err = addRouter(path, functionName, src)
+	src, err = addRouter(path, functionName, src)
 	if err != nil {
 		return err
 	}
@@ -134,7 +137,7 @@ func createPath(cmd *cobra.Command, args []string) error {
 func addFunc(functionName string, src []byte) error {
 	newFunc := fmt.Sprintf(`
 	func %s(c *gin.Context) {
-    c.JSON(http.StatusOK, gin.H{})
+    c.JSON(200, gin.H{})
 	}
 	`, functionName)
 
@@ -145,70 +148,28 @@ func addFunc(functionName string, src []byte) error {
 		return err
 	}
 
-	return os.WriteFile("main.go", formatted, 0o644)
+	return os.WriteFile("server.go", formatted, 0o644)
 }
 
-func addRouter(path string, functionName string, src []byte) error {
+func addRouter(path string, functionName string, src []byte) ([]byte, error) {
 	fset := token.NewFileSet()
 
-	file, err := parser.ParseFile(fset, "main.go", src, 0)
+	file, err := parser.ParseFile(fset, "server.go", src, 0)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	// Find main()
 	for _, decl := range file.Decls {
 		fn, ok := decl.(*ast.FuncDecl)
-		if !ok || fn.Name.Name != "main" {
+		if !ok || fn.Name.Name != "registerRoutes" {
 			continue
 		}
 
-		// Find the last route registration
-		insertPos := -1
-
-		for _, stmt := range fn.Body.List {
-			exprStmt, ok := stmt.(*ast.ExprStmt)
-			if !ok {
-				continue
-			}
-
-			call, ok := exprStmt.X.(*ast.CallExpr)
-			if !ok {
-				continue
-			}
-
-			sel, ok := call.Fun.(*ast.SelectorExpr)
-			if !ok {
-				continue
-			}
-
-			receiver, ok := sel.X.(*ast.Ident)
-			if !ok || receiver.Name != "r" {
-				continue
-			}
-
-			switch sel.Sel.Name {
-			case "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS":
-				insertPos = fset.Position(stmt.End()).Offset
-			}
-		}
-
-		if insertPos == -1 {
-			return fmt.Errorf("no route handlers found")
-		}
-
-		// Insert text after the last handler
+		insertPos := fset.Position(fn.Body.Rbrace).Offset
 		updated := string(src[:insertPos]) +
-			"\n\n\t" +
-			"r.GET(\"/" + path + "\", " + functionName + ")" +
+			"\n\ts.r.GET(\"/" + path + "\", " + functionName + ")\n" +
 			string(src[insertPos:])
-
-		formatted, err := format.Source([]byte(updated))
-		if err != nil {
-			return err
-		}
-		src = formatted
-		return os.WriteFile("main.go", formatted, 0o644)
+		return []byte(updated), nil
 	}
 
-	return fmt.Errorf("main function not found")
+	return nil, fmt.Errorf("registerRoutes function not found")
 }
