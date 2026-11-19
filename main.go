@@ -51,6 +51,10 @@ func main() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+	output, err := exec.Command("go", "mod", "tidy").CombinedOutput()
+	if err != nil {
+		fmt.Printf("go mod tidy failed: %w\n%s", err, output)
+	}
 }
 
 func initInit(cmd *cobra.Command, args []string) error {
@@ -89,14 +93,7 @@ func initInit(cmd *cobra.Command, args []string) error {
 		Version:    goVersion,
 		ModulePath: modulePath,
 	})
-	if err != nil {
-		return err
-	}
-	output, err := exec.Command("go", "get", "github.com/gin-gonic/gin").CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("go get failed: %w\n%s", err, output)
-	}
-	return nil
+	return err
 }
 
 func getGoVersion() (string, error) {
