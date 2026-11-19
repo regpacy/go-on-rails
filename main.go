@@ -28,7 +28,13 @@ func main() {
 		RunE: createPath,
 	}
 
-	rootCmd.AddCommand(initCmd, pathCmd)
+	domainCmd := &cobra.Command{
+		Use:  "domain <struct name>",
+		Args: cobra.ExactArgs(1),
+		RunE: createDomain,
+	}
+
+	rootCmd.AddCommand(initCmd, pathCmd, domainCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
