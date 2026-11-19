@@ -34,7 +34,7 @@ func newRootCommand() *cobra.Command {
 		},
 	}
 
-	repoCmd := &cobra.Command{
+	repoInterfaceCmd := &cobra.Command{
 		Use:  "repo_interface <struct name for interface>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
@@ -49,6 +49,22 @@ func newRootCommand() *cobra.Command {
 			return createRepoImplementation(args[0], args[1])
 		},
 	}
-	rootCmd.AddCommand(initCmd, pathCmd, domainCmd, repoCmd, repoImplementationCmd)
+
+	repoCmd := &cobra.Command{
+		Use:  "repo <struct name> <implementation name>",
+		Args: cobra.ExactArgs(2),
+		RunE: func(_ *cobra.Command, args []string) error {
+			err := createDomain(args[0])
+			if err != nil {
+				return err
+			}
+			err = createRepoInterface(args[0])
+			if err != nil {
+				return err
+			}
+			return createRepoImplementation(args[0], args[1])
+		},
+	}
+	rootCmd.AddCommand(initCmd, pathCmd, domainCmd, repoInterfaceCmd, repoImplementationCmd, repoCmd)
 	return rootCmd
 }
