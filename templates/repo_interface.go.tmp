@@ -1,0 +1,3 @@
+package repo
+
+type {{.StructName}}Repository interface{}

@@ -3,9 +3,7 @@ package main
 import (
 	_ "embed"
 	"os"
-	"strings"
 	"text/template"
-	"unicode/utf8"
 
 	"github.com/spf13/cobra"
 )
@@ -38,13 +36,4 @@ func createDomain(cmd *cobra.Command, args []string) error {
 		StructName: structName,
 	})
 	return err
-}
-
-func StructToFilename(s string) string {
-	if s == "" {
-		return s
-	}
-
-	_, size := utf8.DecodeRuneInString(s)
-	return strings.ToLower(s[:size]) + s[size:] + ".go"
 }

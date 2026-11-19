@@ -34,7 +34,13 @@ func main() {
 		RunE: createDomain,
 	}
 
-	rootCmd.AddCommand(initCmd, pathCmd, domainCmd)
+	repoCmd := &cobra.Command{
+		Use:  "repo <struct name for interface>",
+		Args: cobra.ExactArgs(1),
+		RunE: createRepoInterface,
+	}
+
+	rootCmd.AddCommand(initCmd, pathCmd, domainCmd, repoCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
