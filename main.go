@@ -53,8 +53,16 @@ func main() {
 	}
 	output, err := exec.Command("go", "mod", "tidy").CombinedOutput()
 	if err != nil {
-		fmt.Printf("go mod tidy failed: %w\n%s", err, output)
+		fmt.Printf("go mod tidy failed: %v\n%s", err, output)
 	}
+}
+
+func organizeImports(path string) error {
+	output, err := exec.Command("gopls", "codeaction", "-kind=source.organizeImports", "-exec", "-write", path).CombinedOutput()
+	if err != nil && !strings.HasPrefix(string(output), "gopls: no matching code action at ") {
+		return fmt.Errorf("gopls organize imports failed: %w\n%s", err, output)
+	}
+	return nil
 }
 
 func initInit(cmd *cobra.Command, args []string) error {
@@ -134,7 +142,7 @@ func createPath(cmd *cobra.Command, args []string) error {
 func addFunc(functionName string, src []byte) error {
 	newFunc := fmt.Sprintf(`
 	func %s(c *gin.Context) {
-    c.JSON(200, gin.H{})
+    c.JSON(http.StatusOK, gin.H{})
 	}
 	`, functionName)
 
@@ -145,7 +153,12 @@ func addFunc(functionName string, src []byte) error {
 		return err
 	}
 
-	return os.WriteFile("server.go", formatted, 0o644)
+	err = os.WriteFile("server.go", formatted, 0o644)
+	if err != nil {
+		return err
+	}
+	err = organizeImports("server.go")
+	return err
 }
 
 func addRouter(path string, functionName string, src []byte) ([]byte, error) {
