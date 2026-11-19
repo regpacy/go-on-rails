@@ -7,8 +7,6 @@ import (
 	"os/exec"
 	"strings"
 	"text/template"
-
-	"github.com/spf13/cobra"
 )
 
 //go:embed templates/main.go
@@ -20,8 +18,7 @@ var goModTemplate string
 //go:embed templates/server.go.tmp
 var serverTemplate string
 
-func initProject(cmd *cobra.Command, args []string) error {
-	modulePath := args[0]
+func initProject(modulePath string) error {
 	mainFile, err := os.Create("main.go")
 	defer mainFile.Close()
 	if err != nil {

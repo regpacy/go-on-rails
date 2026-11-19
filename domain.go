@@ -4,15 +4,12 @@ import (
 	_ "embed"
 	"os"
 	"text/template"
-
-	"github.com/spf13/cobra"
 )
 
 //go:embed templates/domain.go.tmp
 var domainTemplate string
 
-func createDomain(cmd *cobra.Command, args []string) error {
-	structName := args[0]
+func createDomain(structName string) error {
 	filename := structToFilename(structName)
 
 	// Creates the directory if it doesn't exist

@@ -10,14 +10,9 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-
-	"github.com/spf13/cobra"
 )
 
-func createPath(cmd *cobra.Command, args []string) error {
-	path := args[0]
-	functionName := args[1]
-
+func createPath(path, functionName string) error {
 	err := exec.Command("go", "build", "-o", "/dev/null", "./...").Run()
 	if err != nil {
 		return errors.New("Project Should be compilable before adding path")

@@ -4,16 +4,12 @@ import (
 	_ "embed"
 	"os"
 	"text/template"
-
-	"github.com/spf13/cobra"
 )
 
 //go:embed templates/repo_implementation.go.tmp
 var repoImplementationTemplate string
 
-func createRepoImplementation(cmd *cobra.Command, args []string) error {
-	structName := args[0]
-	packageName := args[1]
+func createRepoImplementation(structName, packageName string) error {
 	implementationName := firstLetterToUpper(packageName)
 	filename := structToFilename(structName)
 	if err := os.MkdirAll("repo/"+implementationName, 0o755); err != nil {
