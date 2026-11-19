@@ -16,10 +16,10 @@ func createRepoInterface(structName string) error {
 	}
 
 	file, err := os.Create("repo/" + filename)
-	defer file.Close()
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 	tmpl, err := template.New("repo_interface_tmp").Parse(repoInterfaceTemplate)
 	if err != nil {
 		return err

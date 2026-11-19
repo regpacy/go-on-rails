@@ -20,17 +20,17 @@ var serverTemplate string
 
 func initProject(modulePath string) error {
 	mainFile, err := os.Create("main.go")
-	defer mainFile.Close()
 	if err != nil {
 		return err
 	}
+	defer mainFile.Close()
 	mainFile.WriteString(mainTemplate)
 
 	serverFile, err := os.Create("server.go")
-	defer serverFile.Close()
 	if err != nil {
 		return err
 	}
+	defer serverFile.Close()
 	serverFile.WriteString(serverTemplate)
 
 	tmpl, err := template.New("go_mod").Parse(goModTemplate)
@@ -38,10 +38,10 @@ func initProject(modulePath string) error {
 		return err
 	}
 	modFile, err := os.Create("go.mod")
-	defer modFile.Close() // bruh do not check git history to see what mistake was here
 	if err != nil {
 		return err
 	}
+	defer modFile.Close() // bruh do not check git history to see what mistake was here
 	goVersion, err := getGoVersion()
 	if err != nil {
 		return err

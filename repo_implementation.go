@@ -16,10 +16,10 @@ func createRepoImplementation(structName, packageName string) error {
 		return err
 	}
 	file, err := os.Create("repo/" + implementationName + "/" + filename)
-	defer file.Close()
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 	tmpl, err := template.New("repo_implmentation_tmp").Parse(repoImplementationTemplate)
 	if err != nil {
 		return err
