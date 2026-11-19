@@ -22,25 +22,26 @@ var server_tmp string
 
 func initInit(cmd *cobra.Command, args []string) error {
 	modulePath := args[0]
-	file, err := os.Create("main.go")
+	file_main, err := os.Create("main.go")
+	defer file_main.Close()
 	if err != nil {
 		return err
 	}
-	file.WriteString(main_tmp)
-	file.Close()
+	file_main.WriteString(main_tmp)
 
-	file, err = os.Create("server.go")
+	file_server, err := os.Create("server.go")
+	defer file_server.Close()
 	if err != nil {
 		return err
 	}
-	file.WriteString(server_tmp)
-	file.Close()
+	file_server.WriteString(server_tmp)
 
 	tmpl, err := template.New("go_mod").Parse(go_mod_tmp)
 	if err != nil {
 		return err
 	}
-	file, err = os.Create("go.mod")
+	file_mod, err := os.Create("go.mod")
+	defer file_mod.Close() // bruh do not check git history to see what mistake was here
 	if err != nil {
 		return err
 	}
@@ -48,8 +49,7 @@ func initInit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-	err = tmpl.Execute(file, struct {
+	err = tmpl.Execute(file_mod, struct {
 		Version    string
 		ModulePath string
 	}{
