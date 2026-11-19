@@ -35,12 +35,17 @@ func main() {
 	}
 
 	repoCmd := &cobra.Command{
-		Use:  "repo <struct name for interface>",
+		Use:  "repo_interface <struct name for interface>",
 		Args: cobra.ExactArgs(1),
 		RunE: createRepoInterface,
 	}
 
-	rootCmd.AddCommand(initCmd, pathCmd, domainCmd, repoCmd)
+	repoImplementationCmd := &cobra.Command{
+		Use:  "repo_implementation <struct name for interface> <implementation name>",
+		Args: cobra.ExactArgs(2),
+		RunE: createRepoImplementation,
+	}
+	rootCmd.AddCommand(initCmd, pathCmd, domainCmd, repoCmd, repoImplementationCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
