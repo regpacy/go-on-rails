@@ -24,6 +24,9 @@ var configTemplate string
 //go:embed templates/gitignore.tmp
 var gitignoreTemplate string
 
+//go:embed templates/db.go.tmp
+var dbTemplate string
+
 func initProject(modulePath string) error {
 	mainFile, err := os.Create("main.go")
 	if err != nil {
@@ -52,6 +55,13 @@ func initProject(modulePath string) error {
 	}
 	defer gitignoreFile.Close()
 	gitignoreFile.WriteString(gitignoreTemplate)
+
+	dbFile, err := os.Create("db.go")
+	if err != nil {
+		return err
+	}
+	defer dbFile.Close()
+	dbFile.WriteString(dbTemplate)
 
 	dotenv, err := os.Create(".env")
 	if err != nil {

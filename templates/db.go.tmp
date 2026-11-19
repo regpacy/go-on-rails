@@ -1,0 +1,14 @@
+package main
+
+import (
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
+)
+
+func InitDB() (*sqlx.DB, error) {
+	db, err := sqlx.Connect("pgx", DSN)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
