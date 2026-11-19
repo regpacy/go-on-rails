@@ -9,24 +9,24 @@ import (
 )
 
 //go:embed templates/domain.go.tmp
-var domain_tmp string
+var domainTemplate string
 
 func createDomain(cmd *cobra.Command, args []string) error {
 	structName := args[0]
-	fileName := StructToFilename(structName)
+	filename := structToFilename(structName)
 
 	// Creates the directory if it doesn't exist
 	if err := os.MkdirAll("domain", 0o755); err != nil {
 		return err
 	}
 
-	file, err := os.Create("domain/" + fileName)
+	file, err := os.Create("domain/" + filename)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	tmpl, err := template.New("domain_tmp").Parse(domain_tmp)
+	tmpl, err := template.New("domain_tmp").Parse(domainTemplate)
 	if err != nil {
 		return err
 	}

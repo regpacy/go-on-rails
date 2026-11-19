@@ -12,36 +12,36 @@ import (
 )
 
 //go:embed templates/main.go
-var main_tmp string
+var mainTemplate string
 
 //go:embed templates/go.mod.tmp
-var go_mod_tmp string
+var goModTemplate string
 
 //go:embed templates/server.go.tmp
-var server_tmp string
+var serverTemplate string
 
-func initInit(cmd *cobra.Command, args []string) error {
+func initProject(cmd *cobra.Command, args []string) error {
 	modulePath := args[0]
-	file_main, err := os.Create("main.go")
-	defer file_main.Close()
+	mainFile, err := os.Create("main.go")
+	defer mainFile.Close()
 	if err != nil {
 		return err
 	}
-	file_main.WriteString(main_tmp)
+	mainFile.WriteString(mainTemplate)
 
-	file_server, err := os.Create("server.go")
-	defer file_server.Close()
+	serverFile, err := os.Create("server.go")
+	defer serverFile.Close()
 	if err != nil {
 		return err
 	}
-	file_server.WriteString(server_tmp)
+	serverFile.WriteString(serverTemplate)
 
-	tmpl, err := template.New("go_mod").Parse(go_mod_tmp)
+	tmpl, err := template.New("go_mod").Parse(goModTemplate)
 	if err != nil {
 		return err
 	}
-	file_mod, err := os.Create("go.mod")
-	defer file_mod.Close() // bruh do not check git history to see what mistake was here
+	modFile, err := os.Create("go.mod")
+	defer modFile.Close() // bruh do not check git history to see what mistake was here
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func initInit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	err = tmpl.Execute(file_mod, struct {
+	err = tmpl.Execute(modFile, struct {
 		Version    string
 		ModulePath string
 	}{

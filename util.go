@@ -5,7 +5,7 @@ import (
 	"unicode/utf8"
 )
 
-func StructToFilename(s string) string {
+func structToFilename(s string) string {
 	if s == "" {
 		return s
 	}

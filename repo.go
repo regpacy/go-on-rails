@@ -9,21 +9,21 @@ import (
 )
 
 //go:embed templates/repo_interface.go.tmp
-var repoInterfaceTmp string
+var repoInterfaceTemplate string
 
 func createRepoInterface(cmd *cobra.Command, args []string) error {
 	structName := args[0]
-	fileName := StructToFilename(structName)
+	filename := structToFilename(structName)
 	if err := os.MkdirAll("repo", 0o755); err != nil {
 		return err
 	}
 
-	file, err := os.Create("repo/" + fileName)
+	file, err := os.Create("repo/" + filename)
 	defer file.Close()
 	if err != nil {
 		return err
 	}
-	tmpl, err := template.New("repo_interface_tmp").Parse(repoInterfaceTmp)
+	tmpl, err := template.New("repo_interface_tmp").Parse(repoInterfaceTemplate)
 	if err != nil {
 		return err
 	}

@@ -13,14 +13,14 @@ func main() {
 		Use:   "go-on-rails",
 		Short: "project and files generated for go web servers",
 		Run: func(cmd *cobra.Command, args []string) {
-			println(main_tmp)
+			println(mainTemplate)
 		},
 		SilenceUsage: true,
 	}
 	initCmd := &cobra.Command{
 		Use:  "init <module_path>",
 		Args: cobra.ExactArgs(1),
-		RunE: initInit,
+		RunE: initProject,
 	}
 	pathCmd := &cobra.Command{
 		Use:  "path <path> <function name>",
