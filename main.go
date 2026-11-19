@@ -23,6 +23,9 @@ var main_tmp string
 //go:embed templates/go.mod.tmp
 var go_mod_tmp string
 
+//go:embed templates/server.go
+var server_tmp string
+
 func main() {
 	rootCmd := &cobra.Command{
 		Use:   "go-on-rails",
@@ -57,6 +60,13 @@ func initInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	file.WriteString(main_tmp)
+	file.Close()
+
+	file, err = os.Create("server.go")
+	if err != nil {
+		return err
+	}
+	file.WriteString(server_tmp)
 	file.Close()
 
 	tmpl, err := template.New("go_mod").Parse(go_mod_tmp)
