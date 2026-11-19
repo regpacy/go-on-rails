@@ -9,7 +9,7 @@ import (
 	"text/template"
 )
 
-//go:embed templates/main.go
+//go:embed templates/main.go.tmp
 var mainTemplate string
 
 //go:embed templates/go.mod.tmp
@@ -17,6 +17,12 @@ var goModTemplate string
 
 //go:embed templates/server.go.tmp
 var serverTemplate string
+
+//go:embed templates/config.go.tmp
+var configTemplate string
+
+//go:embed templates/gitignore.tmp
+var gitignoreTemplate string
 
 func initProject(modulePath string) error {
 	mainFile, err := os.Create("main.go")
@@ -33,6 +39,25 @@ func initProject(modulePath string) error {
 	defer serverFile.Close()
 	serverFile.WriteString(serverTemplate)
 
+	configFile, err := os.Create("config.go")
+	if err != nil {
+		return err
+	}
+	defer configFile.Close()
+	configFile.WriteString(configTemplate)
+
+	gitignoreFile, err := os.Create(".gitignore")
+	if err != nil {
+		return err
+	}
+	defer gitignoreFile.Close()
+	gitignoreFile.WriteString(gitignoreTemplate)
+
+	dotenv, err := os.Create(".env")
+	if err != nil {
+		return err
+	}
+	dotenv.Close()
 	tmpl, err := template.New("go_mod").Parse(goModTemplate)
 	if err != nil {
 		return err

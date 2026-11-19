@@ -1,0 +1,15 @@
+package main
+
+import (
+	"log"
+	"os"
+)
+
+var DSN = ""
+
+func configInit() {
+	DSN = os.Getenv("DATABASE_URL")
+	if DSN == "" {
+		log.Fatal("DSN not set in .env")
+	}
+}
